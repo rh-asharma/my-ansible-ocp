@@ -61,7 +61,8 @@
   when: "{{ quickapp }}" 
 
 - name: create application via sti
-  command: oc new-app --name={{ apphostname }} --template={{ template }}  {{ git_url }} --context-dir={{ contextdir }} 
+#  command: oc new-app --name={{ apphostname }} --template={{ template }}  {{ git_url }} --context-dir={{ contextdir }} 
+  command: oc new-app {{ template }}~{{ git_url }} --context-dir={{ contextdir }} --name={{ apphostname }}
   when: "{{ sti }}"
 
 - name: expose service
