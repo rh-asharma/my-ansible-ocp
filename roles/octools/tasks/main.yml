@@ -18,6 +18,7 @@
 - name: create oc project
   command: oc new-project {{ projectname }}
 #  when: "{{ quickapp }}"
+  ignore_errors: yes
 
 #- name: copy templates scaler.yaml and resourcelimits for pod autoscaling
 #  template: 
