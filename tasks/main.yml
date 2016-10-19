@@ -1,0 +1,83 @@
+---
+# tasks file for octools
+- name: login to openshift
+  command: oc login -u={{ username }} -p={{ pass }} --insecure-skip-tls-verify {{ ochost }}:{{ ocport }}
+
+- name: 
+  get_url:
+    url: "{{ url_to_template }}"
+    dest: /tmp/{{ templatename }}.conf
+    mode: 0444
+  when: "{{ createtemplate }}"
+
+- name: import template into openshift
+  command: oc create -f /tmp/{{ templatename }}.conf -n openshift
+  ignore_errors: true
+  when: "{{ createtemplate }}" 
+
+- name: create oc project
+  command: oc new-project {{ projectname }}
+  when: "{{ quickapp }}"
+
+- name: copy templates scaler.yaml and resourcelimits for pod autoscaling
+  template: 
+    src: templates/{{ item }}.j2
+    dest: /tmp/{{ item }}
+    owner: root
+    group: root
+    mode: 0644 
+  with_items:
+    - scalar.yaml
+    - resourcelimits.yaml
+  when: "{{ sti }}"
+
+- name: create oc project
+  command: oc new-project {{ projectname }}
+  when: "{{ sti }}"
+
+- name: switch to project
+  command: oc project {{ projectname }}
+
+- name: login as admin to add user to project as admin
+  command: oc login -u system:admin
+  when: "{{ autoscale }}"
+
+- name: create resource limits for the project
+  command: oc create -f /tmp/resourcelimits.yaml -n {{ projectname }}
+  when: "{{ autoscale }}"
+
+- name: login to openshift as user {{ username }}
+  command: oc login -u={{ username }} -p={{ pass }} --insecure-skip-tls-verify {{ ochost }}:{{ ocport }}
+  when: "{{ sti }}"
+
+- name: switch to project
+  command: oc project {{ projectname }}
+  when: "{{ sti }}"
+
+- name: create application
+  command: oc new-app {{ template }} -p APPLICATION_DOMAIN={{ apphostname }}.{{ appdomain }}
+  when: "{{ quickapp }}" 
+
+- name: create application via sti
+  command: oc new-app --name={{ apphostname }} {{ git_url }} --context-dir={{ contextdir }} 
+  when: "{{ sti }}"
+
+- name: expose service
+  command: oc expose service {{ apphostname }}
+  when: "{{ sti }}"
+
+- name: setup autoscaling
+  command: oc create -f /tmp/scalar.yaml -n {{ projectname }}
+  when: "{{ autoscale }}"
+
+#- name: wait for hpa to come up
+#  shell: if [ $(oc get hpa | grep waiting | awk '{print $4}') == "<waiting>"]; then echo 'notready';else 'ready';fi
+#  register: hpa
+#  until: hpa.stdout.find("ready") !=1 
+#  retries: 5
+#  delay: 10
+#  when: "{{ sti }}"
+    
+- name: scale app
+  command: oc scale --replicas={{ number_of_instances }} dc/{{ apphostname }}
+  when: "{{ scaleme }}"

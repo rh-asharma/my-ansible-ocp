@@ -1,0 +1,17 @@
+---
+# defaults file for octools
+projectname: testproject
+template: nodejs-example
+apphostname: mynodejsapp
+createtemplate: false
+quickapp: false
+sti: false
+git_url: https://github.com/dudash/openshift-workshops.git 
+template: nodejs-example
+projectname: testproject
+scaleme: false
+autoscale: false
+username: youruser
+pass: yourpass
+contextdir: .
+number_of_instances: 1
