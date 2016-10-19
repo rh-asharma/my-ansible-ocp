@@ -17,7 +17,7 @@
 
 - name: create oc project
   command: oc new-project {{ projectname }}
-#  when: "{{ quickapp }}"
+  when: "{{ quickapp }}"
   ignore_errors: yes
 
 #- name: copy templates scaler.yaml and resourcelimits for pod autoscaling
@@ -50,15 +50,15 @@
 
 - name: login to openshift as user {{ username }}
   command: oc login -u={{ username }} -p={{ pass }} --insecure-skip-tls-verify {{ ochost }}:{{ ocport }}
-#  when: "{{ sti }}"
+  when: "{{ sti }}"
 
 - name: switch to project
   command: oc project {{ projectname }}
-#  when: "{{ sti }}"
+  when: "{{ sti }}"
 
 - name: create application
   command: oc new-app {{ template }} -p APPLICATION_DOMAIN={{ apphostname }}.{{ appdomain }}
-#  when: "{{ quickapp }}" 
+  when: "{{ quickapp }}" 
 
 - name: create application via sti
   command: oc new-app --name={{ apphostname }} {{ git_url }} --context-dir={{ contextdir }} 
