@@ -34,6 +34,7 @@
 - name: create oc project
   command: oc new-project {{ projectname }}
   when: "{{ sti }}"
+  ignore_errors: yes
 
 - name: switch to project
   command: oc project {{ projectname }}
